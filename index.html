@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Планировщик учёбы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ==================== ЭКРАН ГОСТЯ ==================== -->
+<div id="guestView">
+  <header class="guest-header">
+    <div class="brand">
+      <span class="brand-mark">✦</span>
+      <span class="brand-name">Планировщик учёбы</span>
+    </div>
+  </header>
+
+  <main class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Учёба, дедлайны, спокойствие</p>
+      <h1>Всё, что задано —<br>в одном расписании.</h1>
+      <p class="hero-sub">Ведите предметы, домашние задания и дедлайны в одном месте. Приложение само напомнит, когда сдавать, и покажет, сколько уже сделано.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="showRegisterBtn">Создать аккаунт</button>
+        <button class="btn btn-ghost" id="showLoginBtn">У меня уже есть аккаунт</button>
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <svg viewBox="0 0 320 320" class="dial-hero">
+        <circle cx="160" cy="160" r="130" class="dial-track"/>
+        <circle cx="160" cy="160" r="130" class="dial-progress" stroke-dasharray="620" stroke-dashoffset="180"/>
+        <text x="160" y="150" text-anchor="middle" class="dial-num">72%</text>
+        <text x="160" y="178" text-anchor="middle" class="dial-label">выполнено</text>
+      </svg>
+      <div class="hero-card hero-card--1">Матан · сдать до пт</div>
+      <div class="hero-card hero-card--2">Физика · через 1 день</div>
+    </div>
+  </main>
+
+  <section class="feature-strip">
+    <div class="feature"><span class="feature-num">01</span><h3>Предметы</h3><p>Список всех дисциплин с преподавателями.</p></div>
+    <div class="feature"><span class="feature-num">02</span><h3>Задания</h3><p>Что задано, по какому предмету и когда сдавать.</p></div>
+    <div class="feature"><span class="feature-num">03</span><h3>Дедлайны</h3><p>Просроченное — красным, срочное — жёлтым.</p></div>
+    <div class="feature"><span class="feature-num">04</span><h3>Напоминания</h3><p>Само подскажет за 3 и за 1 день до сдачи.</p></div>
+  </section>
+
+  <!-- Формы входа / регистрации -->
+  <div class="modal-backdrop" id="authBackdrop">
+    <div class="modal">
+      <button class="modal-close" id="authCloseBtn" aria-label="Закрыть">✕</button>
+
+      <form id="loginForm" class="auth-form">
+        <h2>Вход в аккаунт</h2>
+        <p class="field-error" id="loginError"></p>
+        <label>Логин
+          <input type="text" id="loginUsername" autocomplete="username" required>
+        </label>
+        <label>Пароль
+          <input type="password" id="loginPassword" autocomplete="current-password" required>
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Войти</button>
+        <p class="switch-line">Нет аккаунта? <a href="#" id="switchToRegister">Зарегистрироваться</a></p>
+      </form>
+
+      <form id="registerForm" class="auth-form hidden">
+        <h2>Регистрация</h2>
+        <p class="field-error" id="registerError"></p>
+        <label>Логин
+          <input type="text" id="registerUsername" autocomplete="username" required>
+        </label>
+        <label>Пароль
+          <input type="password" id="registerPassword" autocomplete="new-password" required>
+        </label>
+        <label>Повторите пароль
+          <input type="password" id="registerPassword2" autocomplete="new-password" required>
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
+        <p class="switch-line">Уже есть аккаунт? <a href="#" id="switchToLogin">Войти</a></p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ЭКРАН ПРИЛОЖЕНИЯ (после входа) ==================== -->
+<div id="appView" class="hidden">
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">✦</span>
+      <span class="brand-name">Планировщик учёбы</span>
+    </div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="subjects">Предметы</button>
+      <button class="tab-btn" data-tab="tasks">Задания</button>
+      <button class="tab-btn" data-tab="deadlines">Дедлайны</button>
+      <button class="tab-btn" data-tab="reminders">Напоминания <span class="badge" id="reminderBadge"></span></button>
+    </nav>
+    <div class="user-box">
+      <span id="currentUserLabel"></span>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">Выйти</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- ---------- ПРЕДМЕТЫ ---------- -->
+    <section id="tab-subjects" class="tab-panel active">
+      <div class="panel-head">
+        <h2>Мои предметы</h2>
+        <button class="btn btn-primary btn-sm" id="addSubjectBtn">+ Добавить предмет</button>
+      </div>
+
+      <form id="subjectForm" class="inline-form hidden">
+        <input type="hidden" id="subjectId">
+        <label>Название предмета
+          <input type="text" id="subjectName" placeholder="например, Матанализ" required>
+        </label>
+        <label>Преподаватель
+          <input type="text" id="subjectTeacher" placeholder="например, Иванова А.С." required>
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="cancelSubjectBtn">Отмена</button>
+        </div>
+      </form>
+
+      <div id="subjectsList" class="cards-grid"></div>
+      <p class="empty-state hidden" id="subjectsEmpty">Пока нет ни одного предмета. Добавьте первый — это займёт 10 секунд.</p>
+    </section>
+
+    <!-- ---------- ЗАДАНИЯ ---------- -->
+    <section id="tab-tasks" class="tab-panel">
+      <div class="panel-head">
+        <h2>Домашние задания</h2>
+        <button class="btn btn-primary btn-sm" id="addTaskBtn">+ Добавить задание</button>
+      </div>
+
+      <div class="filters">
+        <label>Предмет
+          <select id="filterSubject"><option value="all">Все предметы</option></select>
+        </label>
+        <label>Статус
+          <select id="filterStatus">
+            <option value="all">Все</option>
+            <option value="undone">Не выполнено</option>
+            <option value="done">Выполнено</option>
+          </select>
+        </label>
+      </div>
+
+      <form id="taskForm" class="inline-form hidden">
+        <input type="hidden" id="taskId">
+        <label>Предмет
+          <select id="taskSubject" required></select>
+        </label>
+        <label>Описание задания
+          <input type="text" id="taskDesc" placeholder="например, решить задачи №1-10" required>
+        </label>
+        <label>Дедлайн
+          <input type="date" id="taskDeadline" required>
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="cancelTaskBtn">Отмена</button>
+        </div>
+      </form>
+
+      <div id="tasksList" class="tasks-list"></div>
+      <p class="empty-state hidden" id="tasksEmpty">Заданий пока нет. Сначала добавьте предмет, потом — задание.</p>
+    </section>
+
+    <!-- ---------- ДЕДЛАЙНЫ ---------- -->
+    <section id="tab-deadlines" class="tab-panel">
+      <div class="panel-head">
+        <h2>Ближайшие дедлайны</h2>
+      </div>
+      <p class="legend">
+        <span class="dot dot-danger"></span> просрочено
+        <span class="dot dot-warn"></span> осталось 3 дня или меньше
+        <span class="dot dot-ok"></span> есть время
+      </p>
+      <div id="deadlinesList" class="tasks-list"></div>
+      <p class="empty-state hidden" id="deadlinesEmpty">Невыполненных заданий нет — можно выдохнуть.</p>
+    </section>
+
+    <!-- ---------- НАПОМИНАНИЯ ---------- -->
+    <section id="tab-reminders" class="tab-panel">
+      <div class="panel-head">
+        <h2>Напоминания</h2>
+      </div>
+      <div id="remindersList" class="reminders-list"></div>
+      <p class="empty-state hidden" id="remindersEmpty">Срочных напоминаний нет.</p>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
